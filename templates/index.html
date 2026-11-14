@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Troco</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-body: #090d16;
+            --bg-surface: #111827;
+            --bg-elevated: #1f2937;
+            --bg-input: #090d16;
+            --border-color: #2d3748;
+            --border-focus: #3b82f6;
+            --text-primary: #f9fafb;
+            --text-secondary: #9ca3af;
+            --text-muted: #6b7280;
+            --accent-primary: #3b82f6;
+            --accent-hover: #2563eb;
+            --accent-text: #ffffff;
+            --danger-bg: rgba(239, 68, 68, 0.12);
+            --danger-border: #ef4444;
+            --danger-text: #fca5a5;
+            --shadow-card: 0 25px 50px -12px rgba(0, 0, 0, 0.55);
+        }
+
+        [data-theme="light"] {
+            --bg-body: #f1f5f9;
+            --bg-surface: #ffffff;
+            --bg-elevated: #f8fafc;
+            --bg-input: #ffffff;
+            --border-color: #cbd5e1;
+            --border-focus: #2563eb;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --accent-primary: #2563eb;
+            --accent-hover: #1d4ed8;
+            --accent-text: #ffffff;
+            --danger-bg: #fef2f2;
+            --danger-border: #ef4444;
+            --danger-text: #b91c1c;
+            --shadow-card: 0 20px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 40px 20px;
+            transition: background-color 0.35s cubic-bezier(0.4, 0, 0.2, 1), color 0.35s ease;
+        }
+
+        @keyframes terminalEntrance {
+            0% {
+                opacity: 0;
+                transform: translateY(20px) scale(0.98);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .terminal-wrapper {
+            background-color: var(--bg-surface);
+            width: 100%;
+            max-width: 720px;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-card);
+            overflow: hidden;
+            animation: terminalEntrance 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            transition: background-color 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
+        }
+
+        .terminal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 24px 32px;
+            border-bottom: 1px solid var(--border-color);
+            transition: border-color 0.35s ease;
+        }
+
+        .brand-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .brand-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--accent-primary);
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background-color: #10b981;
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            animation: pulseStatus 2s infinite;
+        }
+
+        @keyframes pulseStatus {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6); }
+            70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        .terminal-header h1 {
+            font-size: 1.35rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-icon {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background-color: var(--bg-elevated);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn-icon:hover {
+            color: var(--text-primary);
+            border-color: var(--text-muted);
+            transform: translateY(-1px);
+        }
+
+        .btn-icon:active {
+            transform: translateY(0) scale(0.97);
+        }
+
+        .theme-icon-anim {
+            transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .btn-icon:hover .theme-icon-anim {
+            transform: rotate(25deg);
+        }
+
+        .terminal-body {
+            padding: 32px;
+        }
+
+        .input-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+
+        .shortcut-hint {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .input-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .currency-field {
+            position: relative;
+            flex: 1;
+            display: flex;
+            align-items: center;
+        }
+
+        .currency-prefix {
+            position: absolute;
+            left: 16px;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            pointer-events: none;
+            transition: color 0.2s ease;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            background-color: var(--bg-input);
+            border: 1.5px solid var(--border-color);
+            border-radius: 10px;
+            padding: 14px 16px 14px 48px;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.25rem;
+            font-weight: 700;
+            outline: none;
+            transition: border-color 0.25s ease, box-shadow 0.25s ease, background-color 0.35s ease;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--border-focus);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.16);
+        }
+
+        .currency-field:focus-within .currency-prefix {
+            color: var(--accent-primary);
+        }
+
+        .btn-primary {
+            background-color: var(--accent-primary);
+            color: var(--accent-text);
+            border: none;
+            border-radius: 10px;
+            padding: 0 28px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--accent-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px -4px rgba(59, 130, 246, 0.45);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0) scale(0.97);
+        }
+
+        .btn-secondary {
+            background-color: var(--bg-elevated);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 0 16px;
+            font-weight: 600;
+            font-size: 0.88rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-secondary:hover {
+            color: var(--text-primary);
+            border-color: var(--text-muted);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary:active {
+            transform: scale(0.97);
+        }
+
+        .presets-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+        }
+
+        .bar-title {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-right: 4px;
+        }
+
+        .preset-pill {
+            background-color: var(--bg-elevated);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .preset-pill:hover {
+            border-color: var(--accent-primary);
+            color: var(--accent-primary);
+            transform: translateY(-2px);
+        }
+
+        .preset-pill:active {
+            transform: translateY(0) scale(0.96);
+        }
+
+        @keyframes shakeError {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-6px); }
+            40% { transform: translateX(6px); }
+            60% { transform: translateX(-4px); }
+            80% { transform: translateX(4px); }
+        }
+
+        .alert-error {
+            display: none;
+            align-items: center;
+            gap: 12px;
+            background-color: var(--danger-bg);
+            border: 1px solid var(--danger-border);
+            color: var(--danger-text);
+            padding: 14px 16px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            margin-bottom: 24px;
+            animation: shakeError 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+        }
+
+        @keyframes panelReveal {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .results-panel {
+            display: none;
+            flex-direction: column;
+            gap: 20px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border-color);
+            animation: panelReveal 0.35s ease-out forwards;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .metric-card {
+            background-color: var(--bg-elevated);
+            border: 1px solid var(--border-color);
+            padding: 16px;
+            border-radius: 10px;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--text-muted);
+        }
+
+        .metric-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .metric-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .extenso-banner {
+            background-color: var(--bg-elevated);
+            border-left: 3px solid var(--accent-primary);
+            padding: 12px 16px;
+            border-radius: 0 8px 8px 0;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .results-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .results-toolbar h2 {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-secondary);
+        }
+
+        .denominations-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        @keyframes slideInRow {
+            from {
+                opacity: 0;
+                transform: translateX(-16px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .denom-row {
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--bg-elevated);
+            border: 1px solid var(--border-color);
+            padding: 12px 18px;
+            border-radius: 10px;
+            opacity: 0;
+            animation: slideInRow 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .denom-row:hover {
+            transform: translateX(4px);
+            border-color: var(--accent-primary);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .denom-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .visual-note {
+            position: relative;
+            overflow: hidden;
+            width: 56px;
+            height: 28px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: -0.03em;
+            box-shadow: inset 0 0 0 1.5px rgba(255,255,255,0.35);
+            transition: transform 0.25s ease;
+        }
+
+        .visual-coin {
+            position: relative;
+            overflow: hidden;
+            width: 34px;
+            height: 34px;
+            margin: 0 11px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.68rem;
+            font-weight: 700;
+            box-shadow: inset 0 0 0 2px rgba(255,255,255,0.35);
+            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .denom-row:hover .visual-note {
+            transform: scale(1.06);
+        }
+
+        .denom-row:hover .visual-coin {
+            transform: rotate(15deg) scale(1.08);
+        }
+
+        .denom-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .denom-title {
+            font-weight: 600;
+            font-size: 0.98rem;
+        }
+
+        .denom-sub {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+
+        .denom-right {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .denom-subtotal {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .qty-pill {
+            background-color: var(--accent-primary);
+            color: var(--accent-text);
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 0.9rem;
+            padding: 5px 12px;
+            border-radius: 6px;
+            min-width: 48px;
+            text-align: center;
+            transition: transform 0.2s ease;
+        }
+
+        .denom-row:hover .qty-pill {
+            transform: scale(1.05);
+        }
+
+        .history-footer {
+            display: none;
+            margin-top: 28px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+            animation: panelReveal 0.3s ease-out;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .btn-text-danger {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 0.78rem;
+            cursor: pointer;
+            text-decoration: underline;
+            transition: color 0.2s ease;
+        }
+
+        .btn-text-danger:hover {
+            color: var(--danger-border);
+        }
+
+        .history-chips {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 560px) {
+            .input-row { flex-direction: column; }
+            .btn-primary, .btn-secondary { padding: 14px; }
+            .metrics-grid { grid-template-columns: 1fr; }
+            .terminal-header, .terminal-body { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <main class="terminal-wrapper">
+        <header class="terminal-header">
+            <div class="brand-group">
+                <span class="brand-tag">
+                    <span class="status-dot"></span>
+                    Sistema de Caixa PDV
+                </span>
+                <h1>Calculadora de Troco</h1>
+            </div>
+            <div class="header-actions">
+                <button type="button" class="btn-icon" onclick="alternarTema()" aria-label="Alternar tema">
+                    <svg class="theme-icon-anim" id="iconSun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                    <svg class="theme-icon-anim" id="iconMoon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <span id="themeLabel">Modo Claro</span>
+                </button>
+            </div>
+        </header>
+
+        <section class="terminal-body">
+            <div class="input-label">
+                <label for="valorInput">Valor do troco a dispensar</label>
+                <span class="shortcut-hint">ENTER calcular | ESC limpar</span>
+            </div>
+            <div class="input-row">
+                <div class="currency-field">
+                    <span class="currency-prefix">R$</span>
+                    <input type="text" id="valorInput" placeholder="0,00" autocomplete="off" onkeydown="verificarTeclaInput(event)" autofocus>
+                </div>
+                <button type="button" class="btn-primary" id="btnCalcular" onclick="iniciarCalculo()">Calcular Troco</button>
+                <button type="button" class="btn-secondary" onclick="limparTela()">Limpar</button>
+            </div>
+
+            <div class="presets-bar">
+                <span class="bar-title">Simulações rápidas:</span>
+                <button type="button" class="preset-pill" onclick="executarSimulacao('37,85')">37,85</button>
+                <button type="button" class="preset-pill" onclick="executarSimulacao('0,10')">0,10</button>
+                <button type="button" class="preset-pill" onclick="executarSimulacao('388,88')">388,88</button>
+                <button type="button" class="preset-pill" onclick="executarSimulacao('142,50')">142,50</button>
+            </div>
+
+            <div class="alert-error" id="errorBox" role="alert">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+                <span id="errorText"></span>
+            </div>
+
+            <div class="results-panel" id="resultsPanel">
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-label">Montante Total</div>
+                        <div class="metric-value" id="metricTotal">R$ 0,00</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Volume de Peças</div>
+                        <div class="metric-value" id="metricPecas">0 unidades</div>
+                    </div>
+                </div>
+
+                <div class="extenso-banner" id="extensoText"></div>
+
+                <div class="results-toolbar">
+                    <h2>Composição Otimizada</h2>
+                    <button type="button" class="btn-icon" onclick="copiarRelatorio()">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                        <span id="copyLabel">Copiar Relatório</span>
+                    </button>
+                </div>
+
+                <div class="denominations-list" id="denominationsList"></div>
+            </div>
+
+            <footer class="history-footer" id="historySection">
+                <div class="history-header">
+                    <span class="bar-title">Histórico da sessão</span>
+                    <button type="button" class="btn-text-danger" onclick="limparHistorico()">Limpar histórico</button>
+                </div>
+                <div class="history-chips" id="historyList"></div>
+            </footer>
+        </section>
+    </main>
+
+    <script>
+        const PECAS_OFICIAIS = [20000, 10000, 5000, 2000, 1000, 500, 200, 100, 50, 25, 10, 5, 1];
+        const ESTILOS_PECAS = {
+            20000: { tipo: 'Cédula', curto: '200', bg: '#64748b', corTexto: '#ffffff' },
+            10000: { tipo: 'Cédula', curto: '100', bg: '#0284c7', corTexto: '#ffffff' },
+            5000:  { tipo: 'Cédula', curto: '50',  bg: '#d97706', corTexto: '#ffffff' },
+            2000:  { tipo: 'Cédula', curto: '20',  bg: '#ca8a04', corTexto: '#ffffff' },
+            1000:  { tipo: 'Cédula', curto: '10',  bg: '#dc2626', corTexto: '#ffffff' },
+            500:   { tipo: 'Cédula', curto: '5',   bg: '#9333ea', corTexto: '#ffffff' },
+            200:   { tipo: 'Cédula', curto: '2',   bg: '#2563eb', corTexto: '#ffffff' },
+            100:   { tipo: 'Moeda',  curto: '1R$', bg: '#eab308', corTexto: '#1e293b' },
+            50:    { tipo: 'Moeda',  curto: '50c', bg: '#94a3b8', corTexto: '#0f172a' },
+            25:    { tipo: 'Moeda',  curto: '25c', bg: '#b45309', corTexto: '#ffffff' },
+            10:    { tipo: 'Moeda',  curto: '10c', bg: '#d97706', corTexto: '#ffffff' },
+            5:     { tipo: 'Moeda',  curto: '5c',  bg: '#9a3412', corTexto: '#ffffff' },
+            1:     { tipo: 'Moeda',  curto: '1c',  bg: '#78716c', corTexto: '#ffffff' }
+        };
+
+        let ultimoRelatorioTexto = '';
+        let historicoSessao = [];
+
+        function lerStorage(chave, padrao) {
+            try {
+                const val = localStorage.getItem(chave);
+                return val !== null ? val : padrao;
+            } catch (e) {
+                return padrao;
+            }
+        }
+
+        function salvarStorage(chave, valor) {
+            try {
+                localStorage.setItem(chave, valor);
+            } catch (e) {}
+        }
+
+        function aplicarTema(tema) {
+            document.documentElement.setAttribute('data-theme', tema);
+            salvarStorage('pdv_theme', tema);
+            const iconSun = document.getElementById('iconSun');
+            const iconMoon = document.getElementById('iconMoon');
+            const themeLabel = document.getElementById('themeLabel');
+
+            if (tema === 'light') {
+                iconSun.style.display = 'none';
+                iconMoon.style.display = 'block';
+                themeLabel.textContent = 'Modo Escuro';
+            } else {
+                iconSun.style.display = 'block';
+                iconMoon.style.display = 'none';
+                themeLabel.textContent = 'Modo Claro';
+            }
+        }
+
+        function alternarTema() {
+            const atual = document.documentElement.getAttribute('data-theme') || 'dark';
+            aplicarTema(atual === 'dark' ? 'light' : 'dark');
+        }
+
+        function formatarMoeda(centavos) {
+            return (centavos / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+
+        function animarNumero(elemento, valorFinal, formatador, duracao = 380) {
+            const inicio = performance.now();
+            function atualizar(agora) {
+                const progresso = Math.min((agora - inicio) / duracao, 1);
+                const easeOut = 1 - Math.pow(1 - progresso, 3);
+                const valorAtual = Math.round(valorFinal * easeOut);
+                elemento.textContent = formatador(valorAtual);
+                if (progresso < 1) {
+                    requestAnimationFrame(atualizar);
+                } else {
+                    elemento.textContent = formatador(valorFinal);
+                }
+            }
+            requestAnimationFrame(atualizar);
+        }
+
+        function numeroPorExtenso(centavosTotais) {
+            if (centavosTotais === 0) return 'Zero reais';
+            const unidades = ['', 'um', 'dois', 'três', 'quatro', 'cinco', 'seis', 'sete', 'oito', 'nove'];
+            const dezADezenove = ['dez', 'onze', 'doze', 'treze', 'quatorze', 'quinze', 'dezesseis', 'dezessete', 'dezoito', 'dezenove'];
+            const dezenas = ['', '', 'vinte', 'trinta', 'quarenta', 'cinquenta', 'sessenta', 'setenta', 'oitenta', 'noventa'];
+            const centenas = ['', 'cento', 'duzentos', 'trezentos', 'quatrocentos', 'quinhentos', 'seiscentos', 'setecentos', 'oitocentos', 'novecentos'];
+
+            function converterGrupo(n) {
+                if (n === 0) return '';
+                if (n === 100) return 'cem';
+                let partes = [];
+                const c = Math.floor(n / 100);
+                const resto = n % 100;
+                if (c > 0) partes.push(centenas[c]);
+                if (resto >= 10 && resto <= 19) {
+                    partes.push(dezADezenove[resto - 10]);
+                } else {
+                    const d = Math.floor(resto / 10);
+                    const u = resto % 10;
+                    if (d > 0) partes.push(dezenas[d]);
+                    if (u > 0) partes.push(unidades[u]);
+                }
+                return partes.join(' e ');
+            }
+
+            const reais = Math.floor(centavosTotais / 100);
+            const cents = centavosTotais % 100;
+            let resultado = [];
+
+            if (reais > 0) {
+                if (reais >= 1000) {
+                    const milhares = Math.floor(reais / 1000);
+                    const restoReais = reais % 1000;
+                    resultado.push((milhares === 1 ? 'mil' : converterGrupo(milhares) + ' mil') + (restoReais > 0 ? ' e ' + converterGrupo(restoReais) : ''));
+                } else {
+                    resultado.push(converterGrupo(reais));
+                }
+                resultado[resultado.length - 1] += reais === 1 ? ' real' : ' reais';
+            }
+
+            if (cents > 0) {
+                resultado.push(converterGrupo(cents) + (cents === 1 ? ' centavo' : ' centavos'));
+            }
+
+            const frase = resultado.join(' e ');
+            return frase.charAt(0).toUpperCase() + frase.slice(1);
+        }
+
+        function calcularLocalmente(valorTexto) {
+            const limpo = valorTexto.trim().replace(',', '.');
+            if (!limpo) throw new Error('Informe um valor para calcular o troco.');
+            if (!/^-?\d+(\.\d+)?$/.test(limpo)) throw new Error('Valor inválido. Utilize apenas números e vírgula ou ponto.');
+            if (limpo.startsWith('-')) throw new Error('O valor não pode ser negativo.');
+
+            const partes = limpo.split('.');
+            const reais = parseInt(partes[0], 10);
+            let centavosStr = partes[1] || '00';
+            if (centavosStr.length > 2) throw new Error('O valor deve conter no máximo duas casas decimais.');
+
+            centavosStr = centavosStr.padEnd(2, '0');
+            const centavosTotais = (reais * 100) + parseInt(centavosStr, 10);
+
+            let restante = centavosTotais;
+            const pecas = [];
+            for (const peca of PECAS_OFICIAIS) {
+                const qtd = Math.floor(restante / peca);
+                if (qtd > 0) {
+                    pecas.push({ valor: peca, qtd: qtd });
+                    restante = restante % peca;
+                }
+            }
+            return { centavos_totais: centavosTotais, pecas: pecas };
+        }
+
+        async function iniciarCalculo() {
+            const valorTexto = document.getElementById('valorInput').value;
+            const errorBox = document.getElementById('errorBox');
+            const errorText = document.getElementById('errorText');
+            const resultsPanel = document.getElementById('resultsPanel');
+            const btnCalcular = document.getElementById('btnCalcular');
+
+            errorBox.style.display = 'none';
+            btnCalcular.disabled = true;
+            btnCalcular.textContent = 'Processando...';
+
+            try {
+                let dados;
+                try {
+                    const resposta = await fetch('/calcular', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ valor: valorTexto })
+                    });
+                    const contentType = resposta.headers.get('content-type') || '';
+                    if (contentType.includes('application/json')) {
+                        const json = await resposta.json();
+                        if (!resposta.ok || !json.sucesso) {
+                            throw new Error(json.erro || 'Erro ao processar o valor.');
+                        }
+                        dados = json;
+                    } else {
+                        dados = calcularLocalmente(valorTexto);
+                    }
+                } catch (erroRede) {
+                    if (erroRede.message && !erroRede.message.includes('Failed to fetch') && !erroRede.message.includes('NetworkError') && !erroRede.message.includes('JSON')) {
+                        throw erroRede;
+                    }
+                    dados = calcularLocalmente(valorTexto);
+                }
+
+                renderizarResultados(dados.centavos_totais, dados.pecas);
+                salvarHistorico(valorTexto.trim());
+            } catch (err) {
+                resultsPanel.style.display = 'none';
+                errorText.textContent = err.message;
+                errorBox.style.animation = 'none';
+                errorBox.offsetHeight;
+                errorBox.style.animation = null;
+                errorBox.style.display = 'flex';
+            } finally {
+                btnCalcular.disabled = false;
+                btnCalcular.textContent = 'Calcular Troco';
+            }
+        }
+
+        function renderizarResultados(centavosTotais, pecas) {
+            const resultsPanel = document.getElementById('resultsPanel');
+            const listEl = document.getElementById('denominationsList');
+            const metricTotal = document.getElementById('metricTotal');
+            const metricPecas = document.getElementById('metricPecas');
+            const extensoText = document.getElementById('extensoText');
+
+            resultsPanel.style.display = 'none';
+            resultsPanel.offsetHeight;
+            resultsPanel.style.display = 'flex';
+
+            listEl.innerHTML = '';
+            let totalUnidades = 0;
+            let linhasRelatorio = [`Relatório de Troco - Total: ${formatarMoeda(centavosTotais)}`, '----------------------------------------'];
+
+            if (pecas.length === 0) {
+                listEl.innerHTML = '<div class="denom-row" style="opacity: 1;"><span class="denom-title">Nenhuma peça necessária (valor zerado).</span></div>';
+                linhasRelatorio.push('Nenhuma peça necessária.');
+            } else {
+                pecas.forEach((item, index) => {
+                    totalUnidades += item.qtd;
+                    const estilo = ESTILOS_PECAS[item.valor] || { tipo: 'Unidade', curto: '', bg: '#3b82f6', corTexto: '#fff' };
+                    const subtotal = item.valor * item.qtd;
+                    const isCedula = item.valor >= 200;
+
+                    linhasRelatorio.push(`${item.qtd}x ${estilo.tipo} de ${formatarMoeda(item.valor)} (Subtotal: ${formatarMoeda(subtotal)})`);
+
+                    const row = document.createElement('div');
+                    row.className = 'denom-row';
+                    row.style.animationDelay = `${index * 0.06}s`;
+                    row.innerHTML = `
+                        <div class="denom-left">
+                            <div class="${isCedula ? 'visual-note' : 'visual-coin'}" style="background-color: ${estilo.bg}; color: ${estilo.corTexto};">
+                                ${estilo.curto}
+                            </div>
+                            <div class="denom-details">
+                                <span class="denom-title">${formatarMoeda(item.valor)}</span>
+                                <span class="denom-sub">${estilo.tipo} oficial</span>
+                            </div>
+                        </div>
+                        <div class="denom-right">
+                            <span class="denom-subtotal">${formatarMoeda(subtotal)}</span>
+                            <span class="qty-pill">${item.qtd}x</span>
+                        </div>
+                    `;
+                    listEl.appendChild(row);
+                });
+            }
+
+            animarNumero(metricTotal, centavosTotais, formatarMoeda);
+            animarNumero(metricPecas, totalUnidades, (n) => `${n} ${n === 1 ? 'unidade' : 'unidades'}`);
+            extensoText.textContent = `Valor por extenso: ${numeroPorExtenso(centavosTotais)}.`;
+            ultimoRelatorioTexto = linhasRelatorio.join('\n');
+        }
+
+        function executarSimulacao(valor) {
+            document.getElementById('valorInput').value = valor;
+            iniciarCalculo();
+        }
+
+        function limparTela() {
+            const input = document.getElementById('valorInput');
+            input.value = '';
+            document.getElementById('errorBox').style.display = 'none';
+            document.getElementById('resultsPanel').style.display = 'none';
+            input.focus();
+        }
+
+        function salvarHistorico(valor) {
+            if (!valor) return;
+            historicoSessao = historicoSessao.filter(item => item !== valor);
+            historicoSessao.unshift(valor);
+            if (historicoSessao.length > 6) historicoSessao.pop();
+            salvarStorage('pdv_history', JSON.stringify(historicoSessao));
+            renderizarHistorico();
+        }
+
+        function limparHistorico() {
+            historicoSessao = [];
+            salvarStorage('pdv_history', '[]');
+            renderizarHistorico();
+        }
+
+        function renderizarHistorico() {
+            const section = document.getElementById('historySection');
+            const listEl = document.getElementById('historyList');
+
+            if (historicoSessao.length === 0) {
+                section.style.display = 'none';
+                return;
+            }
+
+            section.style.display = 'block';
+            listEl.innerHTML = '';
+            historicoSessao.forEach(val => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'preset-pill';
+                btn.textContent = `R$ ${val}`;
+                btn.onclick = () => executarSimulacao(val);
+                listEl.appendChild(btn);
+            });
+        }
+
+        function copiarRelatorio() {
+            if (!ultimoRelatorioTexto) return;
+            const copyLabel = document.getElementById('copyLabel');
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(ultimoRelatorioTexto).then(() => {
+                    copyLabel.textContent = 'Copiado';
+                    setTimeout(() => { copyLabel.textContent = 'Copiar Relatório'; }, 2000);
+                });
+            }
+        }
+
+        function verificarTeclaInput(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                iniciarCalculo();
+            } else if (event.key === 'Escape') {
+                limparTela();
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') limparTela();
+        });
+
+        (function init() {
+            const temaSalvo = lerStorage('pdv_theme', 'dark');
+            aplicarTema(temaSalvo);
+            try {
+                historicoSessao = JSON.parse(lerStorage('pdv_history', '[]'));
+            } catch (e) {
+                historicoSessao = [];
+            }
+            renderizarHistorico();
+        })();
+    </script>
+</body>
+</html>
