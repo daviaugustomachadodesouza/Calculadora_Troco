@@ -1,1040 +1,869 @@
 <!DOCTYPE html>
-<html lang="pt-BR" data-theme="dark">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora de Troco</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg-body: #090d16;
-            --bg-surface: #111827;
-            --bg-elevated: #1f2937;
-            --bg-input: #090d16;
-            --border-color: #2d3748;
-            --border-focus: #3b82f6;
-            --text-primary: #f9fafb;
-            --text-secondary: #9ca3af;
-            --text-muted: #6b7280;
-            --accent-primary: #3b82f6;
-            --accent-hover: #2563eb;
-            --accent-text: #ffffff;
-            --danger-bg: rgba(239, 68, 68, 0.12);
-            --danger-border: #ef4444;
-            --danger-text: #fca5a5;
-            --shadow-card: 0 25px 50px -12px rgba(0, 0, 0, 0.55);
-        }
-
-        [data-theme="light"] {
-            --bg-body: #f1f5f9;
-            --bg-surface: #ffffff;
-            --bg-elevated: #f8fafc;
-            --bg-input: #ffffff;
-            --border-color: #cbd5e1;
-            --border-focus: #2563eb;
-            --text-primary: #0f172a;
-            --text-secondary: #475569;
-            --text-muted: #64748b;
-            --accent-primary: #2563eb;
-            --accent-hover: #1d4ed8;
-            --accent-text: #ffffff;
-            --danger-bg: #fef2f2;
-            --danger-border: #ef4444;
-            --danger-text: #b91c1c;
-            --shadow-card: 0 20px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-        }
-
-        body {
-            background-color: var(--bg-body);
-            color: var(--text-primary);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            padding: 40px 20px;
-            transition: background-color 0.35s cubic-bezier(0.4, 0, 0.2, 1), color 0.35s ease;
-        }
-
-        @keyframes terminalEntrance {
-            0% {
-                opacity: 0;
-                transform: translateY(20px) scale(0.98);
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Calculadora de Troco - Sistema de Caixa PDV</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#3b82f6',
+              600: '#1d63ed',
+              700: '#1d4ed8',
             }
-            100% {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-        }
-
-        .terminal-wrapper {
-            background-color: var(--bg-surface);
-            width: 100%;
-            max-width: 720px;
-            border-radius: 16px;
-            border: 1px solid var(--border-color);
-            box-shadow: var(--shadow-card);
-            overflow: hidden;
-            animation: terminalEntrance 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            transition: background-color 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
-        }
-
-        .terminal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 24px 32px;
-            border-bottom: 1px solid var(--border-color);
-            transition: border-color 0.35s ease;
-        }
-
-        .brand-group {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .brand-tag {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 0.72rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            color: var(--accent-primary);
-        }
-
-        .status-dot {
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
-            background-color: #10b981;
-            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
-            animation: pulseStatus 2s infinite;
-        }
-
-        @keyframes pulseStatus {
-            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6); }
-            70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-        }
-
-        .terminal-header h1 {
-            font-size: 1.35rem;
-            font-weight: 700;
-            letter-spacing: -0.02em;
-        }
-
-        .header-actions {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .btn-icon {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background-color: var(--bg-elevated);
-            color: var(--text-secondary);
-            border: 1px solid var(--border-color);
-            padding: 8px 14px;
-            border-radius: 8px;
-            font-size: 0.82rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .btn-icon:hover {
-            color: var(--text-primary);
-            border-color: var(--text-muted);
-            transform: translateY(-1px);
-        }
-
-        .btn-icon:active {
-            transform: translateY(0) scale(0.97);
-        }
-
-        .theme-icon-anim {
-            transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-
-        .btn-icon:hover .theme-icon-anim {
-            transform: rotate(25deg);
-        }
-
-        .terminal-body {
-            padding: 32px;
-        }
-
-        .input-label {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: var(--text-secondary);
-            margin-bottom: 10px;
-        }
-
-        .shortcut-hint {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.75rem;
-            color: var(--text-muted);
-        }
-
-        .input-row {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 16px;
-        }
-
-        .currency-field {
-            position: relative;
-            flex: 1;
-            display: flex;
-            align-items: center;
-        }
-
-        .currency-prefix {
-            position: absolute;
-            left: 16px;
-            font-family: 'JetBrains Mono', monospace;
-            font-weight: 700;
-            font-size: 1.1rem;
-            color: var(--text-muted);
-            pointer-events: none;
-            transition: color 0.2s ease;
-        }
-
-        input[type="text"] {
-            width: 100%;
-            background-color: var(--bg-input);
-            border: 1.5px solid var(--border-color);
-            border-radius: 10px;
-            padding: 14px 16px 14px 48px;
-            color: var(--text-primary);
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 1.25rem;
-            font-weight: 700;
-            outline: none;
-            transition: border-color 0.25s ease, box-shadow 0.25s ease, background-color 0.35s ease;
-        }
-
-        input[type="text"]:focus {
-            border-color: var(--border-focus);
-            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.16);
-        }
-
-        .currency-field:focus-within .currency-prefix {
-            color: var(--accent-primary);
-        }
-
-        .btn-primary {
-            background-color: var(--accent-primary);
-            color: var(--accent-text);
-            border: none;
-            border-radius: 10px;
-            padding: 0 28px;
-            font-weight: 600;
-            font-size: 0.95rem;
-            cursor: pointer;
-            transition: background-color 0.2s ease, transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease;
-            white-space: nowrap;
-        }
-
-        .btn-primary:hover {
-            background-color: var(--accent-hover);
-            transform: translateY(-1px);
-            box-shadow: 0 6px 16px -4px rgba(59, 130, 246, 0.45);
-        }
-
-        .btn-primary:active {
-            transform: translateY(0) scale(0.97);
-        }
-
-        .btn-secondary {
-            background-color: var(--bg-elevated);
-            color: var(--text-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 0 16px;
-            font-weight: 600;
-            font-size: 0.88rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .btn-secondary:hover {
-            color: var(--text-primary);
-            border-color: var(--text-muted);
-            transform: translateY(-1px);
-        }
-
-        .btn-secondary:active {
-            transform: scale(0.97);
-        }
-
-        .presets-bar {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-wrap: wrap;
-            margin-bottom: 24px;
-        }
-
-        .bar-title {
-            font-size: 0.8rem;
-            font-weight: 500;
-            color: var(--text-muted);
-            margin-right: 4px;
-        }
-
-        .preset-pill {
-            background-color: var(--bg-elevated);
-            color: var(--text-secondary);
-            border: 1px solid var(--border-color);
-            padding: 5px 12px;
-            border-radius: 6px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.8rem;
-            cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .preset-pill:hover {
-            border-color: var(--accent-primary);
-            color: var(--accent-primary);
-            transform: translateY(-2px);
-        }
-
-        .preset-pill:active {
-            transform: translateY(0) scale(0.96);
-        }
-
-        @keyframes shakeError {
-            0%, 100% { transform: translateX(0); }
-            20% { transform: translateX(-6px); }
-            40% { transform: translateX(6px); }
-            60% { transform: translateX(-4px); }
-            80% { transform: translateX(4px); }
-        }
-
-        .alert-error {
-            display: none;
-            align-items: center;
-            gap: 12px;
-            background-color: var(--danger-bg);
-            border: 1px solid var(--danger-border);
-            color: var(--danger-text);
-            padding: 14px 16px;
-            border-radius: 10px;
-            font-size: 0.9rem;
-            margin-bottom: 24px;
-            animation: shakeError 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
-        }
-
-        @keyframes panelReveal {
-            from {
-                opacity: 0;
-                transform: translateY(12px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .results-panel {
-            display: none;
-            flex-direction: column;
-            gap: 20px;
-            padding-top: 24px;
-            border-top: 1px solid var(--border-color);
-            animation: panelReveal 0.35s ease-out forwards;
-        }
-
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
-
-        .metric-card {
-            background-color: var(--bg-elevated);
-            border: 1px solid var(--border-color);
-            padding: 16px;
-            border-radius: 10px;
-            transition: transform 0.2s ease, border-color 0.2s ease;
-        }
-
-        .metric-card:hover {
-            transform: translateY(-2px);
-            border-color: var(--text-muted);
-        }
-
-        .metric-label {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--text-muted);
-            font-weight: 600;
-            margin-bottom: 6px;
-        }
-
-        .metric-value {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 1.35rem;
-            font-weight: 700;
-            color: var(--text-primary);
-        }
-
-        .extenso-banner {
-            background-color: var(--bg-elevated);
-            border-left: 3px solid var(--accent-primary);
-            padding: 12px 16px;
-            border-radius: 0 8px 8px 0;
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-        }
-
-        .results-toolbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .results-toolbar h2 {
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-            color: var(--text-secondary);
-        }
-
-        .denominations-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        @keyframes slideInRow {
-            from {
-                opacity: 0;
-                transform: translateX(-16px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        .denom-row {
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: var(--bg-elevated);
-            border: 1px solid var(--border-color);
-            padding: 12px 18px;
-            border-radius: 10px;
-            opacity: 0;
-            animation: slideInRow 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .denom-row:hover {
-            transform: translateX(4px);
-            border-color: var(--accent-primary);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-
-        .denom-left {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .visual-note {
-            position: relative;
-            overflow: hidden;
-            width: 56px;
-            height: 28px;
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.72rem;
-            font-weight: 700;
-            color: #ffffff;
-            letter-spacing: -0.03em;
-            box-shadow: inset 0 0 0 1.5px rgba(255,255,255,0.35);
-            transition: transform 0.25s ease;
-        }
-
-        .visual-coin {
-            position: relative;
-            overflow: hidden;
-            width: 34px;
-            height: 34px;
-            margin: 0 11px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.68rem;
-            font-weight: 700;
-            box-shadow: inset 0 0 0 2px rgba(255,255,255,0.35);
-            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-
-        .denom-row:hover .visual-note {
-            transform: scale(1.06);
-        }
-
-        .denom-row:hover .visual-coin {
-            transform: rotate(15deg) scale(1.08);
-        }
-
-        .denom-details {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .denom-title {
-            font-weight: 600;
-            font-size: 0.98rem;
-        }
-
-        .denom-sub {
-            font-size: 0.78rem;
-            color: var(--text-muted);
-        }
-
-        .denom-right {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
-
-        .denom-subtotal {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.85rem;
-            color: var(--text-muted);
-        }
-
-        .qty-pill {
-            background-color: var(--accent-primary);
-            color: var(--accent-text);
-            font-family: 'JetBrains Mono', monospace;
-            font-weight: 700;
-            font-size: 0.9rem;
-            padding: 5px 12px;
-            border-radius: 6px;
-            min-width: 48px;
-            text-align: center;
-            transition: transform 0.2s ease;
-        }
-
-        .denom-row:hover .qty-pill {
-            transform: scale(1.05);
-        }
-
-        .history-footer {
-            display: none;
-            margin-top: 28px;
-            padding-top: 20px;
-            border-top: 1px solid var(--border-color);
-            animation: panelReveal 0.3s ease-out;
-        }
-
-        .history-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .btn-text-danger {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            font-size: 0.78rem;
-            cursor: pointer;
-            text-decoration: underline;
-            transition: color 0.2s ease;
-        }
-
-        .btn-text-danger:hover {
-            color: var(--danger-border);
-        }
-
-        .history-chips {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        @media (max-width: 560px) {
-            .input-row { flex-direction: column; }
-            .btn-primary, .btn-secondary { padding: 14px; }
-            .metrics-grid { grid-template-columns: 1fr; }
-            .terminal-header, .terminal-body { padding: 20px; }
-        }
-    </style>
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    html {
+      scroll-behavior: smooth;
+    }
+
+    /* Animação de montagem gradativa dos módulos da calculadora */
+    .assembly-part {
+      opacity: 0;
+      transform: translateY(32px) scale(0.95);
+      filter: blur(4px);
+      transition:
+        opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1),
+        transform 0.65s cubic-bezier(0.16, 1, 0.3, 1),
+        filter 0.55s ease;
+      pointer-events: none;
+    }
+
+    .assembly-part.assembled {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      filter: blur(0);
+      pointer-events: auto;
+    }
+
+    /* Animação individual de encaixe de cada tecla */
+    .key-part {
+      opacity: 0;
+      transform: translateY(20px) scale(0.75);
+      filter: blur(3px);
+      transition:
+        opacity 0.45s cubic-bezier(0.34, 1.56, 0.64, 1),
+        transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1),
+        filter 0.35s ease,
+        background-color 0.15s ease,
+        box-shadow 0.2s ease;
+      pointer-events: none;
+    }
+
+    .key-part.assembled {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      filter: blur(0);
+      pointer-events: auto;
+    }
+
+    .key-part.just-snapped {
+      box-shadow: 0 0 0 3px rgba(29, 99, 237, 0.35);
+    }
+
+    /* Animação de aparição gradativa das cédulas e moedas */
+    @keyframes popInCoin {
+      0% {
+        opacity: 0;
+        transform: translateX(-18px) scale(0.94);
+      }
+      70% {
+        opacity: 1;
+        transform: translateX(3px) scale(1.01);
+      }
+      100% {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+      }
+    }
+
+    .money-item-enter {
+      opacity: 0;
+      animation: popInCoin 0.48s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .keypad-btn {
+      transition: transform 0.08s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .keypad-btn:active {
+      transform: scale(0.94) !important;
+    }
+
+    @keyframes pulseDot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.45; transform: scale(0.85); }
+    }
+    .status-dot {
+      animation: pulseDot 2.2s infinite ease-in-out;
+    }
+  </style>
 </head>
-<body>
+<body class="bg-[#f4f7fb] dark:bg-[#0b1120] text-slate-800 dark:text-slate-100 min-h-screen transition-colors duration-300 antialiased selection:bg-brand-600 selection:text-white">
 
-    <main class="terminal-wrapper">
-        <header class="terminal-header">
-            <div class="brand-group">
-                <span class="brand-tag">
-                    <span class="status-dot"></span>
-                    Sistema de Caixa PDV
-                </span>
-                <h1>Calculadora de Troco</h1>
+  <!-- Barra superior fixa com Sistema de Caixa PDV, espaço de uma linha, Título Maior, progresso e Modo Escuro -->
+  <header class="sticky top-0 z-40 backdrop-blur-md bg-[#f4f7fb]/85 dark:bg-[#0b1120]/85 border-b border-slate-200/70 dark:border-slate-800">
+    <div class="max-w-3xl mx-auto px-4 py-4">
+      <!-- Linha superior: Indicador PDV, barra de progresso e botão Modo Escuro -->
+      <div class="flex items-center justify-between gap-4">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 status-dot"></span>
+          <span class="text-xs font-bold tracking-wider uppercase text-brand-600 dark:text-brand-500">Sistema de Caixa PDV</span>
+        </div>
+
+        <!-- Indicador de montagem no scroll -->
+        <div class="hidden sm:flex items-center gap-2.5 flex-1 max-w-xs">
+          <span id="assemblyStatusText" class="text-[11px] font-medium text-slate-500 dark:text-slate-400 whitespace-nowrap">Role para montar</span>
+          <div class="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+            <div id="assemblyProgressBar" class="h-full bg-brand-600 transition-all duration-300 rounded-full" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <button id="themeToggleBtn" type="button" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition cursor-pointer shrink-0">
+          <svg id="moonIcon" class="w-3.5 h-3.5 text-slate-600 dark:text-slate-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+          </svg>
+          <svg id="sunIcon" class="w-3.5 h-3.5 text-amber-400 hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="5" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+          </svg>
+          <span id="themeLabel">Modo Escuro</span>
+        </button>
+      </div>
+
+      <!-- Título principal pulando a distância de uma linha abaixo de Sistema de Caixa PDV -->
+      <div class="mt-5">
+        <span class="block text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-none">
+          Calculadora de Troco
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-3xl mx-auto px-4 pt-8 pb-24">
+
+    <!-- SEÇÃO 1: EXPLICAÇÃO DA CALCULADORA E COMO ELA FUNCIONA -->
+    <section class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm p-6 sm:p-8 mb-8">
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 dark:bg-blue-950/60 text-brand-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900/50">
+          Guia Rápido do Operador
+        </span>
+        <span class="text-xs text-slate-400 dark:text-slate-500 font-mono">BRL • Real Brasileiro</span>
+      </div>
+
+      <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-3">
+        Como funciona a Calculadora de Troco?
+      </h1>
+      <p class="text-slate-600 dark:text-slate-300 text-sm sm:text-base leading-relaxed mb-6">
+        Esta ferramenta foi desenvolvida para agilizar o fechamento de caixa em pontos de venda (PDV). A partir do valor exato do troco informado por você, o sistema calcula automaticamente a <strong class="text-slate-800 dark:text-white font-semibold">composição otimizada</strong> utilizando a menor quantidade possível de cédulas e moedas oficiais do Real, evitando falta de troco no caixa e erros de contagem.
+      </p>
+
+      <!-- 3 Passos do Funcionamento -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/60">
+          <div class="w-7 h-7 rounded-lg bg-brand-600 text-white font-bold text-xs flex items-center justify-center mb-2.5">1</div>
+          <h2 class="text-sm font-bold text-slate-900 dark:text-white mb-1">Digitação Manual</h2>
+          <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+            Digite o valor exato usando o teclado numérico (<code class="font-mono font-semibold text-brand-600 dark:text-blue-400">0–9</code>) e o ponto (<code class="font-mono font-semibold text-brand-600 dark:text-blue-400">.</code>) para separar reais e centavos. Nada é preenchido automaticamente.
+          </p>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/60">
+          <div class="w-7 h-7 rounded-lg bg-brand-600 text-white font-bold text-xs flex items-center justify-center mb-2.5">2</div>
+          <h2 class="text-sm font-bold text-slate-900 dark:text-white mb-1">Cálculo Otimizado</h2>
+          <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+            Clique em <strong>Calcular Troco</strong> (ou pressione <kbd class="px-1.5 py-0.5 text-[10px] font-mono bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded">ENTER</kbd>) para processar as cédulas de R$ 200 a R$ 2 e moedas de R$ 1 a R$ 0,05.
+          </p>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/60">
+          <div class="w-7 h-7 rounded-lg bg-brand-600 text-white font-bold text-xs flex items-center justify-center mb-2.5">3</div>
+          <h2 class="text-sm font-bold text-slate-900 dark:text-white mb-1">Conferência Gradativa</h2>
+          <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+            As cédulas e moedas aparecem uma por uma na tela junto com o volume total de peças, o valor por extenso e a opção de copiar o relatório.
+          </p>
+        </div>
+      </div>
+
+      <!-- Chamada visual para rolar e ver a montagem -->
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-200/80 dark:border-slate-800">
+        <div class="flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400">
+          <svg class="w-4 h-4 text-brand-600 animate-bounce" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+          </svg>
+          <span>Role a página para baixo para assistir à montagem peça por peça da calculadora</span>
+        </div>
+        <button id="assembleAllBtn" type="button" class="text-xs font-semibold text-brand-600 dark:text-blue-400 hover:underline cursor-pointer">
+          Montar tudo agora →
+        </button>
+      </div>
+    </section>
+
+    <!-- ÁREA DE MONTAGEM GRADATIVA DA CALCULADORA NO SCROLL -->
+    <div id="calculatorAssemblyZone" class="relative space-y-6">
+
+      <!-- Card Principal da Calculadora -->
+      <section class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-lg shadow-slate-200/50 dark:shadow-none p-6 sm:p-8 transition-colors">
+
+        <!-- PEÇA 1: Cabeçalho da Calculadora -->
+        <div class="assembly-part pb-5 mb-6 border-b border-slate-200/80 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3" data-step="1">
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+              <span class="text-[11px] font-bold tracking-wider uppercase text-brand-600 dark:text-blue-400">Sistema de Caixa PDV</span>
             </div>
-            <div class="header-actions">
-                <button type="button" class="btn-icon" onclick="alternarTema()" aria-label="Alternar tema">
-                    <svg class="theme-icon-anim" id="iconSun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                    <svg class="theme-icon-anim" id="iconMoon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                    <span id="themeLabel">Modo Claro</span>
-                </button>
+            <h2 class="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">Calculadora de Troco</h2>
+          </div>
+          <span class="text-xs font-mono px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200/80 dark:border-slate-700">
+            ENTER calcular | ESC limpar
+          </span>
+        </div>
+
+        <!-- PEÇA 2: Visor de Entrada Manual -->
+        <div class="assembly-part mb-5" data-step="2">
+          <div class="flex items-center justify-between mb-2">
+            <label for="changeDisplay" class="text-sm font-semibold text-slate-700 dark:text-slate-300">
+              Valor do troco a dispensar
+            </label>
+            <span class="text-[11px] text-slate-400 dark:text-slate-500">Use . para centavos (ex: 37.85)</span>
+          </div>
+
+          <div class="relative flex items-center rounded-2xl border-2 border-slate-200 dark:border-slate-700 focus-within:border-brand-600 dark:focus-within:border-blue-500 bg-slate-50/70 dark:bg-slate-950 px-4 py-3.5 transition-colors">
+            <span class="text-lg sm:text-xl font-bold text-slate-400 dark:text-slate-500 mr-3 select-none">R$</span>
+            <input
+              id="changeDisplay"
+              type="text"
+              inputmode="decimal"
+              autocomplete="off"
+              placeholder="0.00"
+              aria-label="Valor do troco a dispensar"
+              class="w-full bg-transparent font-mono text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white placeholder-slate-300 dark:placeholder-slate-700 focus:outline-none"
+            />
+            <button id="inlineClearBtn" type="button" title="Limpar visor" class="hidden text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg transition cursor-pointer">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <p id="inputErrorMsg" class="hidden mt-2 text-xs font-medium text-rose-600 dark:text-rose-400"></p>
+        </div>
+
+        <!-- PEÇA 3: Estrutura Base do Teclado Numérico (as teclas aparecem uma por uma!) -->
+        <div class="assembly-part mb-6" data-step="3">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Teclado Numérico Manual</span>
+            <span id="keysCounterLabel" class="text-[11px] font-mono text-slate-400 dark:text-slate-500">0 / 12 teclas encaixadas</span>
+          </div>
+
+          <div id="keypadGrid" class="grid grid-cols-3 gap-2.5 p-3.5 rounded-2xl bg-slate-100/80 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/70">
+            <!-- Linha 1: 7, 8, 9 -->
+            <button type="button" data-key="7" class="key-part keypad-btn h-13 py-3.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xs font-mono text-lg font-bold text-slate-800 dark:text-slate-100 hover:bg-blue-50 dark:hover:bg-slate-700 hover:border-brand-500 cursor-pointer">7</button>
+            <button type="button" data-key="8" class="key-part keypad-btn h-13 py-3.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xs font-mono text-lg font-bold text-slate-800 dark:text-slate-100 hover:bg-blue-50 dark:hover:bg-slate-700 hover:border-brand-500 cursor-pointer">8</button>
+            <button type="button" data-key="9" class="key-part keypad-btn h-13 py-3.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xs font-mono text-lg font-bold text-slate-800 dark:text-slate-100 hover:bg-blue-50 dark:hover:bg-slate-700 hover:border-brand-500 cursor-pointer">9</button>
+
+            <!-- Linha 2: 4, 5, 6 -->
+            <button type="button" data-key="4" class="key-part keypad-btn h-13 py-3.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xs font-mono text-lg font-bold text-slate-800 dark:text-slate-100 hover:bg-blue-50 dark:hover:bg-slate-700 hover:border-brand-500 cursor-pointer">4</button>
+            <button type="button" data-key="5" class="key-part keypad-btn h-13 py-3.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xs font-mono text-lg font-bold text-slate-800 dark:text-slate-100 hover:bg-blue-50 dark:hover:bg-slate-700 hover:border-brand-500 cursor-pointer">5</button>
+            <button type="button" data-key="6" class="key-part keypad-btn h-13 py-3.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xs font-mono text-lg font-bold text-slate-800 dark:text-slate-100 hover:bg-blue-50 dark:hover:bg-slate-700 hover:border-brand-500 cursor-pointer">6</button>
+
+            <!-- Linha 3: 1, 2, 3 -->
+            <button type="button" data-key="1" class="key-part keypad-btn h-13 py-3.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xs font-mono text-lg font-bold text-slate-800 dark:text-slate-100 hover:bg-blue-50 dark:hover:bg-slate-700 hover:border-brand-500 cursor-pointer">1</button>
+            <button type="button" data-key="2" class="key-part keypad-btn h-13 py-3.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xs font-mono text-lg font-bold text-slate-800 dark:text-slate-100 hover:bg-blue-50 dark:hover:bg-slate-700 hover:border-brand-500 cursor-pointer">2</button>
+            <button type="button" data-key="3" class="key-part keypad-btn h-13 py-3.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xs font-mono text-lg font-bold text-slate-800 dark:text-slate-100 hover:bg-blue-50 dark:hover:bg-slate-700 hover:border-brand-500 cursor-pointer">3</button>
+
+            <!-- Linha 4: Ponto (.), Zero (0), Apagar (Backspace) -->
+            <button type="button" data-key="." aria-label="Ponto separador decimal" class="key-part keypad-btn h-13 py-3.5 rounded-xl bg-blue-50/70 dark:bg-slate-800/90 border border-blue-200/80 dark:border-slate-700 shadow-xs font-mono text-xl font-extrabold text-brand-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-slate-700 cursor-pointer">.</button>
+            <button type="button" data-key="0" class="key-part keypad-btn h-13 py-3.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xs font-mono text-lg font-bold text-slate-800 dark:text-slate-100 hover:bg-blue-50 dark:hover:bg-slate-700 hover:border-brand-500 cursor-pointer">0</button>
+            <button type="button" id="backspaceBtn" aria-label="Apagar último dígito" class="key-part keypad-btn h-13 py-3.5 rounded-xl bg-slate-200/70 dark:bg-slate-700/70 border border-slate-300/70 dark:border-slate-600 shadow-xs flex items-center justify-center text-slate-700 dark:text-slate-200 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 dark:hover:bg-rose-950/50 dark:hover:text-rose-400 cursor-pointer">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M3 12l6.414 6.414a2 2 0 001.414.586H19a2 2 0 002-2V7a2 2 0 00-2-2h-8.172a2 2 0 00-1.414.586L3 12z" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- PEÇA 4: Botões de Ação + Simulações Rápidas -->
+        <div class="assembly-part pb-7 mb-7 border-b border-slate-200/80 dark:border-slate-800" data-step="4">
+          <div class="flex flex-col sm:flex-row gap-3 mb-5">
+            <button id="calculateBtn" type="button" class="flex-1 py-3.5 px-6 rounded-2xl bg-brand-600 hover:bg-brand-700 active:scale-[0.99] text-white font-bold text-base shadow-md shadow-brand-600/20 transition cursor-pointer">
+              Calcular Troco
+            </button>
+            <button id="clearBtn" type="button" class="py-3.5 px-6 rounded-2xl bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-base transition cursor-pointer">
+              Limpar
+            </button>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="text-xs font-medium text-slate-500 dark:text-slate-400 mr-1">Simulações rápidas:</span>
+            <button type="button" data-preset="37.85" class="preset-btn px-3 py-1.5 rounded-lg font-mono text-xs font-semibold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-brand-500 hover:text-brand-600 dark:hover:text-blue-400 transition cursor-pointer">37.85</button>
+            <button type="button" data-preset="0.10" class="preset-btn px-3 py-1.5 rounded-lg font-mono text-xs font-semibold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-brand-500 hover:text-brand-600 dark:hover:text-blue-400 transition cursor-pointer">0.10</button>
+            <button type="button" data-preset="388.88" class="preset-btn px-3 py-1.5 rounded-lg font-mono text-xs font-semibold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-brand-500 hover:text-brand-600 dark:hover:text-blue-400 transition cursor-pointer">388.88</button>
+            <button type="button" data-preset="142.50" class="preset-btn px-3 py-1.5 rounded-lg font-mono text-xs font-semibold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-brand-500 hover:text-brand-600 dark:hover:text-blue-400 transition cursor-pointer">142.50</button>
+          </div>
+        </div>
+
+        <!-- PEÇA 5: Painel de Resultados e Composição Otimizada -->
+        <div class="assembly-part" data-step="5">
+          <!-- Cards de Resumo: Montante Total e Volume de Peças -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+            <div class="p-4 sm:p-5 rounded-2xl bg-slate-50/80 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/70">
+              <span class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">Montante Total</span>
+              <span id="totalAmountText" class="font-mono text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">R$ 0,00</span>
             </div>
-        </header>
 
-        <section class="terminal-body">
-            <div class="input-label">
-                <label for="valorInput">Valor do troco a dispensar</label>
-                <span class="shortcut-hint">ENTER calcular | ESC limpar</span>
+            <div class="p-4 sm:p-5 rounded-2xl bg-slate-50/80 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/70">
+              <span class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">Volume de Peças</span>
+              <span id="totalPiecesText" class="font-mono text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">0 unidades</span>
             </div>
-            <div class="input-row">
-                <div class="currency-field">
-                    <span class="currency-prefix">R$</span>
-                    <input type="text" id="valorInput" placeholder="0,00" autocomplete="off" onkeydown="verificarTeclaInput(event)" autofocus>
-                </div>
-                <button type="button" class="btn-primary" id="btnCalcular" onclick="iniciarCalculo()">Calcular Troco</button>
-                <button type="button" class="btn-secondary" onclick="limparTela()">Limpar</button>
+          </div>
+
+          <!-- Faixa de Valor por Extenso -->
+          <div class="mb-6 p-3.5 px-4 rounded-xl bg-slate-100/90 dark:bg-slate-800/80 border-l-4 border-brand-600 text-sm font-medium text-slate-700 dark:text-slate-300">
+            <span class="text-slate-500 dark:text-slate-400">Valor por extenso:</span>
+            <span id="writtenAmountText" class="font-semibold text-slate-800 dark:text-slate-100 ml-1">Zero reais.</span>
+          </div>
+
+          <!-- Cabeçalho da Composição Otimizada -->
+          <div class="flex items-center justify-between gap-2 mb-3.5">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              Composição Otimizada
+            </h3>
+            <button id="copyReportBtn" type="button" disabled class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-40 disabled:pointer-events-none transition cursor-pointer">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path>
+              </svg>
+              <span id="copyBtnLabel">Copiar Relatório</span>
+            </button>
+          </div>
+
+          <!-- Lista onde as Cédulas e Moedas aparecem gradativamente -->
+          <div id="breakdownContainer" class="space-y-2.5 min-h-[84px]">
+            <div class="p-6 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700 text-center text-sm text-slate-400 dark:text-slate-500">
+              Digite o valor do troco no visor acima e clique em <strong>Calcular Troco</strong> para visualizar as cédulas e moedas.
+            </div>
+          </div>
+
+          <!-- Aviso de arredondamento de centavos (quando houver 1c a 4c) -->
+          <p id="roundingNotice" class="hidden mt-3 text-[11px] text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 border border-amber-200/70 dark:border-amber-800/50 rounded-xl px-3.5 py-2">
+          </p>
+        </div>
+
+      </section>
+    </div>
+
+    <!-- Espaçador extra para permitir rolagem confortável até completar 100% da montagem em qualquer tela -->
+    <div id="scrollTrackSpacer" class="h-[42vh] flex flex-col items-center justify-end pb-6 text-center">
+      <p id="scrollHintBottom" class="text-xs text-slate-400 dark:text-slate-500 transition-opacity duration-300">
+        Continue descendo para encaixar cada número e módulo da calculadora...
+      </p>
+    </div>
+
+  </main>
+
+  <script>
+    // =========================================================================
+    // 1. MODO ESCURO (DARK MODE)
+    // =========================================================================
+    const htmlEl = document.documentElement;
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    const moonIcon = document.getElementById('moonIcon');
+    const sunIcon = document.getElementById('sunIcon');
+    const themeLabel = document.getElementById('themeLabel');
+
+    function applyTheme(isDark) {
+      if (isDark) {
+        htmlEl.classList.add('dark');
+        moonIcon.classList.add('hidden');
+        sunIcon.classList.remove('hidden');
+        themeLabel.textContent = 'Modo Claro';
+      } else {
+        htmlEl.classList.remove('dark');
+        sunIcon.classList.add('hidden');
+        moonIcon.classList.remove('hidden');
+        themeLabel.textContent = 'Modo Escuro';
+      }
+    }
+
+    themeToggleBtn.addEventListener('click', () => {
+      const isDark = !htmlEl.classList.contains('dark');
+      applyTheme(isDark);
+    });
+
+    // =========================================================================
+    // 2. ANIMAÇÃO DE MONTAGEM GRADATIVA NO SCROLL (SOMENTE NA ENTRADA — NUNCA SOME)
+    // =========================================================================
+    const part1Header = document.querySelector('.assembly-part[data-step="1"]');
+    const part2Display = document.querySelector('.assembly-part[data-step="2"]');
+    const part3KeypadBox = document.querySelector('.assembly-part[data-step="3"]');
+    const keyParts = Array.from(document.querySelectorAll('#keypadGrid .key-part'));
+    const part4Actions = document.querySelector('.assembly-part[data-step="4"]');
+    const part5Results = document.querySelector('.assembly-part[data-step="5"]');
+
+    const assemblySequence = [
+      { el: part1Header, isKey: false },
+      { el: part2Display, isKey: false },
+      { el: part3KeypadBox, isKey: false },
+      ...keyParts.map(k => ({ el: k, isKey: true })),
+      { el: part4Actions, isKey: false },
+      { el: part5Results, isKey: false }
+    ];
+
+    const progressBar = document.getElementById('assemblyProgressBar');
+    const statusText = document.getElementById('assemblyStatusText');
+    const assembleAllBtn = document.getElementById('assembleAllBtn');
+    const scrollHintBottom = document.getElementById('scrollHintBottom');
+    const keysCounterLabel = document.getElementById('keysCounterLabel');
+    const assemblyZone = document.getElementById('calculatorAssemblyZone');
+
+    // Guarda o máximo de peças já reveladas para NUNCA desaparecerem ao rolar para cima/baixo
+    let maxUnlockedCount = 0;
+
+    function updateAssemblyOnScroll() {
+      const totalItems = assemblySequence.length;
+
+      if (maxUnlockedCount < totalItems) {
+        const zoneRect = assemblyZone.getBoundingClientRect();
+        const windowHeight = window.innerHeight;
+
+        const startTrigger = windowHeight * 0.88;
+        const travelDistance = Math.max(zoneRect.height * 0.85, 360);
+        const scrolledIntoZone = startTrigger - zoneRect.top;
+
+        let ratio = scrolledIntoZone / travelDistance;
+        ratio = Math.max(0, Math.min(1, ratio));
+
+        const nearBottom = (window.innerHeight + window.scrollY) >= (document.documentElement.scrollHeight - 25);
+        if (nearBottom) ratio = 1;
+
+        const currentCount = Math.round(ratio * totalItems);
+        // Só avança para frente; nunca retrocede
+        if (currentCount > maxUnlockedCount) {
+          maxUnlockedCount = currentCount;
+        }
+      }
+
+      let assembledKeysCount = 0;
+
+      assemblySequence.forEach((item, idx) => {
+        if (idx < maxUnlockedCount) {
+          const wasAssembled = item.el.classList.contains('assembled');
+          item.el.classList.add('assembled');
+
+          if (item.isKey) {
+            assembledKeysCount++;
+            if (!wasAssembled) {
+              item.el.classList.add('just-snapped');
+              setTimeout(() => item.el.classList.remove('just-snapped'), 320);
+            }
+          }
+        }
+      });
+
+      keysCounterLabel.textContent = `${assembledKeysCount} / ${keyParts.length} teclas encaixadas`;
+
+      const percent = Math.round((maxUnlockedCount / totalItems) * 100);
+      progressBar.style.width = `${percent}%`;
+
+      if (percent === 0) {
+        statusText.textContent = 'Role para montar';
+      } else if (percent < 100) {
+        statusText.textContent = `Montando peças (${percent}%)`;
+      } else {
+        statusText.textContent = 'Calculadora 100% montada';
+        scrollHintBottom.style.opacity = '0';
+      }
+    }
+
+    window.addEventListener('scroll', updateAssemblyOnScroll, { passive: true });
+    window.addEventListener('resize', updateAssemblyOnScroll);
+
+    assembleAllBtn.addEventListener('click', () => {
+      maxUnlockedCount = assemblySequence.length;
+      updateAssemblyOnScroll();
+      assemblyZone.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    // =========================================================================
+    // 3. LÓGICA DO TECLADO NUMÉRICO MANUAL (APENAS 0-9 E PONTO DECIMAL)
+    // =========================================================================
+    const changeDisplay = document.getElementById('changeDisplay');
+    const inlineClearBtn = document.getElementById('inlineClearBtn');
+    const inputErrorMsg = document.getElementById('inputErrorMsg');
+    const keypadButtons = document.querySelectorAll('.keypad-btn[data-key]');
+    const backspaceBtn = document.getElementById('backspaceBtn');
+    const calculateBtn = document.getElementById('calculateBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const presetButtons = document.querySelectorAll('.preset-btn');
+
+    function sanitizeManualInput(raw) {
+      let cleaned = raw.replace(/,/g, '.').replace(/[^0-9.]/g, '');
+
+      const firstDotIndex = cleaned.indexOf('.');
+      if (firstDotIndex !== -1) {
+        const beforeDot = cleaned.slice(0, firstDotIndex);
+        const afterDot = cleaned.slice(firstDotIndex + 1).replace(/\./g, '').slice(0, 2);
+        cleaned = `${beforeDot}.${afterDot}`;
+      }
+
+      if (cleaned.length > 1 && cleaned.startsWith('0') && cleaned[1] !== '.') {
+        cleaned = cleaned.replace(/^0+/, '') || '0';
+      }
+
+      if (cleaned.startsWith('.')) {
+        cleaned = '0' + cleaned;
+      }
+
+      return cleaned;
+    }
+
+    function syncDisplayState() {
+      changeDisplay.value = sanitizeManualInput(changeDisplay.value);
+      inlineClearBtn.classList.toggle('hidden', changeDisplay.value.length === 0);
+      inputErrorMsg.classList.add('hidden');
+    }
+
+    function appendKey(key) {
+      let current = changeDisplay.value;
+
+      if (key === '.') {
+        if (current.includes('.')) return;
+        current = current === '' ? '0.' : current + '.';
+      } else {
+        if (current.includes('.')) {
+          const decimals = current.split('.')[1];
+          if (decimals && decimals.length >= 2) return;
+        }
+        if (current.replace('.', '').length >= 9) return;
+        current += key;
+      }
+
+      changeDisplay.value = sanitizeManualInput(current);
+      syncDisplayState();
+    }
+
+    keypadButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        appendKey(btn.getAttribute('data-key'));
+      });
+    });
+
+    backspaceBtn.addEventListener('click', () => {
+      changeDisplay.value = changeDisplay.value.slice(0, -1);
+      syncDisplayState();
+    });
+
+    changeDisplay.addEventListener('input', syncDisplayState);
+
+    changeDisplay.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        runCalculation();
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        resetAll();
+      } else if (['+', '-', '*', '/', 'e', 'E'].includes(e.key)) {
+        e.preventDefault();
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (document.activeElement === changeDisplay) return;
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        runCalculation();
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        resetAll();
+      }
+    });
+
+    presetButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        changeDisplay.value = btn.getAttribute('data-preset');
+        syncDisplayState();
+        runCalculation();
+      });
+    });
+
+    // =========================================================================
+    // 4. CÁLCULO OTIMIZADO DE CÉDULAS E MOEDAS + VALOR POR EXTENSO
+    // =========================================================================
+    const DENOMINATIONS = [
+      { cents: 20000, label: 'R$ 200,00', short: '200', type: 'Cédula oficial', kind: 'note', badgeBg: 'bg-slate-600 text-white' },
+      { cents: 10000, label: 'R$ 100,00', short: '100', type: 'Cédula oficial', kind: 'note', badgeBg: 'bg-cyan-600 text-white' },
+      { cents: 5000,  label: 'R$ 50,00',  short: '50',  type: 'Cédula oficial', kind: 'note', badgeBg: 'bg-amber-600 text-white' },
+      { cents: 2000,  label: 'R$ 20,00',  short: '20',  type: 'Cédula oficial', kind: 'note', badgeBg: 'bg-yellow-500 text-slate-900' },
+      { cents: 1000,  label: 'R$ 10,00',  short: '10',  type: 'Cédula oficial', kind: 'note', badgeBg: 'bg-rose-600 text-white' },
+      { cents: 500,   label: 'R$ 5,00',   short: '5',   type: 'Cédula oficial', kind: 'note', badgeBg: 'bg-purple-600 text-white' },
+      { cents: 200,   label: 'R$ 2,00',   short: '2',   type: 'Cédula oficial', kind: 'note', badgeBg: 'bg-blue-600 text-white' },
+      { cents: 100,   label: 'R$ 1,00',   short: '1R',  type: 'Moeda oficial',  kind: 'coin', badgeBg: 'bg-amber-500 text-slate-900 ring-2 ring-slate-300 dark:ring-slate-600' },
+      { cents: 50,    label: 'R$ 0,50',   short: '50c', type: 'Moeda oficial',  kind: 'coin', badgeBg: 'bg-slate-400 text-slate-900' },
+      { cents: 25,    label: 'R$ 0,25',   short: '25c', type: 'Moeda oficial',  kind: 'coin', badgeBg: 'bg-amber-600 text-white' },
+      { cents: 10,    label: 'R$ 0,10',   short: '10c', type: 'Moeda oficial',  kind: 'coin', badgeBg: 'bg-amber-500 text-white' },
+      { cents: 5,     label: 'R$ 0,05',   short: '5c',  type: 'Moeda oficial',  kind: 'coin', badgeBg: 'bg-orange-700 text-white' }
+    ];
+
+    function formatBRL(cents) {
+      return (cents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+
+    function numberToPortugueseWords(valueCents) {
+      if (valueCents === 0) return 'Zero reais.';
+
+      const units = ['', 'um', 'dois', 'três', 'quatro', 'cinco', 'seis', 'sete', 'oito', 'nove'];
+      const teens = ['dez', 'onze', 'doze', 'treze', 'quatorze', 'quinze', 'dezesseis', 'dezessete', 'dezoito', 'dezenove'];
+      const tens = ['', '', 'vinte', 'trinta', 'quarenta', 'cinquenta', 'sessenta', 'setenta', 'oitenta', 'noventa'];
+      const hundreds = ['', 'cento', 'duzentos', 'trezentos', 'quatrocentos', 'quinhentos', 'seiscentos', 'setecentos', 'oitocentos', 'novecentos'];
+
+      function chunkToWords(n) {
+        if (n === 0) return '';
+        if (n === 100) return 'cem';
+        const parts = [];
+        const h = Math.floor(n / 100);
+        const rem = n % 100;
+        if (h > 0) parts.push(hundreds[h]);
+        if (rem >= 10 && rem <= 19) {
+          parts.push(teens[rem - 10]);
+        } else {
+          const t = Math.floor(rem / 10);
+          const u = rem % 10;
+          if (t > 0) parts.push(tens[t]);
+          if (u > 0) parts.push(units[u]);
+        }
+        return parts.join(' e ');
+      }
+
+      function integerToWords(num) {
+        if (num === 0) return '';
+        if (num < 1000) return chunkToWords(num);
+
+        const millions = Math.floor(num / 1000000);
+        const thousands = Math.floor((num % 1000000) / 1000);
+        const rest = num % 1000;
+        const segments = [];
+
+        if (millions > 0) {
+          segments.push(millions === 1 ? 'um milhão' : `${chunkToWords(millions)} milhões`);
+        }
+        if (thousands > 0) {
+          segments.push(thousands === 1 ? 'mil' : `${chunkToWords(thousands)} mil`);
+        }
+        if (rest > 0) {
+          const connector = (rest < 100 || rest % 100 === 0) ? ' e ' : ' ';
+          if (segments.length > 0) {
+            segments.push(connector.trim() === 'e' ? `e ${chunkToWords(rest)}` : chunkToWords(rest));
+          } else {
+            segments.push(chunkToWords(rest));
+          }
+        }
+        return segments.join(' ').replace(/\s+/g, ' ').trim();
+      }
+
+      const reais = Math.floor(valueCents / 100);
+      const centavos = valueCents % 100;
+      const resultParts = [];
+
+      if (reais > 0) {
+        const reaisWords = integerToWords(reais);
+        const endsInMillion = reais >= 1000000 && reais % 1000000 === 0;
+        resultParts.push(`${reaisWords} ${endsInMillion ? 'de reais' : (reais === 1 ? 'real' : 'reais')}`);
+      }
+
+      if (centavos > 0) {
+        const centWords = chunkToWords(centavos);
+        resultParts.push(`${centWords} ${centavos === 1 ? 'centavo' : 'centavos'}`);
+      }
+
+      const full = resultParts.join(' e ');
+      return full.charAt(0).toUpperCase() + full.slice(1) + '.';
+    }
+
+    const totalAmountText = document.getElementById('totalAmountText');
+    const totalPiecesText = document.getElementById('totalPiecesText');
+    const writtenAmountText = document.getElementById('writtenAmountText');
+    const breakdownContainer = document.getElementById('breakdownContainer');
+    const copyReportBtn = document.getElementById('copyReportBtn');
+    const copyBtnLabel = document.getElementById('copyBtnLabel');
+    const roundingNotice = document.getElementById('roundingNotice');
+
+    let lastReportText = '';
+    let renderTimers = [];
+
+    function clearRenderTimers() {
+      renderTimers.forEach(t => clearTimeout(t));
+      renderTimers = [];
+    }
+
+    function runCalculation() {
+      clearRenderTimers();
+      roundingNotice.classList.add('hidden');
+
+      const raw = changeDisplay.value.trim();
+      if (raw === '' || raw === '.') {
+        inputErrorMsg.textContent = 'Digite um valor numérico válido antes de calcular.';
+        inputErrorMsg.classList.remove('hidden');
+        changeDisplay.focus();
+        return;
+      }
+
+      const numericValue = parseFloat(raw);
+      if (isNaN(numericValue) || numericValue <= 0) {
+        inputErrorMsg.textContent = 'Informe um valor maior que R$ 0,00 para calcular o troco.';
+        inputErrorMsg.classList.remove('hidden');
+        return;
+      }
+
+      const totalCents = Math.round(numericValue * 100);
+      let remaining = totalCents;
+      const items = [];
+      let totalPieces = 0;
+
+      for (const denom of DENOMINATIONS) {
+        const count = Math.floor(remaining / denom.cents);
+        if (count > 0) {
+          items.push({
+            ...denom,
+            count,
+            subtotalCents: count * denom.cents
+          });
+          totalPieces += count;
+          remaining -= count * denom.cents;
+        }
+      }
+
+      totalAmountText.textContent = formatBRL(totalCents);
+      totalPiecesText.textContent = `${totalPieces} ${totalPieces === 1 ? 'unidade' : 'unidades'}`;
+      writtenAmountText.textContent = numberToPortugueseWords(totalCents);
+
+      if (remaining > 0) {
+        roundingNotice.textContent = `Nota: Restaram ${formatBRL(remaining)} que não possuem moeda física circulante (menor moeda oficial é R$ 0,05).`;
+        roundingNotice.classList.remove('hidden');
+      }
+
+      breakdownContainer.innerHTML = '';
+
+      if (items.length === 0) {
+        breakdownContainer.innerHTML = `
+          <div class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-center text-sm text-slate-500 dark:text-slate-400">
+            Valor inferior a R$ 0,05 — não há moeda física correspondente em circulação.
+          </div>
+        `;
+        copyReportBtn.disabled = true;
+        return;
+      }
+
+      // Renderiza cada cédula e moeda de forma GRADATIVA (uma por uma com intervalo)
+      items.forEach((item, index) => {
+        const timer = setTimeout(() => {
+          const row = document.createElement('div');
+          row.className = 'money-item-enter flex items-center justify-between gap-4 p-3.5 sm:px-5 rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-200/90 dark:border-slate-700/80 shadow-xs hover:border-brand-500/50 transition-colors';
+
+          const shapeClass = item.kind === 'coin'
+            ? 'w-10 h-10 rounded-full'
+            : 'w-12 h-9 rounded-lg';
+
+          row.innerHTML = `
+            <div class="flex items-center gap-3.5">
+              <div class="${shapeClass} ${item.badgeBg} flex items-center justify-center font-mono text-xs font-extrabold shrink-0 shadow-xs">
+                ${item.short}
+              </div>
+              <div>
+                <div class="font-mono text-base font-bold text-slate-900 dark:text-white leading-tight">${item.label}</div>
+                <div class="text-xs text-slate-500 dark:text-slate-400">${item.type}</div>
+              </div>
             </div>
 
-            <div class="presets-bar">
-                <span class="bar-title">Simulações rápidas:</span>
-                <button type="button" class="preset-pill" onclick="executarSimulacao('37,85')">37,85</button>
-                <button type="button" class="preset-pill" onclick="executarSimulacao('0,10')">0,10</button>
-                <button type="button" class="preset-pill" onclick="executarSimulacao('388,88')">388,88</button>
-                <button type="button" class="preset-pill" onclick="executarSimulacao('142,50')">142,50</button>
+            <div class="flex items-center gap-3.5">
+              <span class="font-mono text-sm text-slate-500 dark:text-slate-400 hidden sm:inline">${formatBRL(item.subtotalCents)}</span>
+              <span class="px-3 py-1 rounded-lg bg-brand-600 text-white font-mono text-xs font-bold shadow-xs">
+                ${item.count}x
+              </span>
             </div>
+          `;
 
-            <div class="alert-error" id="errorBox" role="alert">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <line x1="12" y1="8" x2="12" y2="12"></line>
-                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                </svg>
-                <span id="errorText"></span>
-            </div>
+          breakdownContainer.appendChild(row);
+        }, index * 150);
 
-            <div class="results-panel" id="resultsPanel">
-                <div class="metrics-grid">
-                    <div class="metric-card">
-                        <div class="metric-label">Montante Total</div>
-                        <div class="metric-value" id="metricTotal">R$ 0,00</div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-label">Volume de Peças</div>
-                        <div class="metric-value" id="metricPecas">0 unidades</div>
-                    </div>
-                </div>
+        renderTimers.push(timer);
+      });
 
-                <div class="extenso-banner" id="extensoText"></div>
+      const lines = [
+        `RELATÓRIO DE TROCO - SISTEMA PDV`,
+        `Montante Total: ${formatBRL(totalCents)}`,
+        `Volume de Peças: ${totalPieces} ${totalPieces === 1 ? 'unidade' : 'unidades'}`,
+        `Por extenso: ${numberToPortugueseWords(totalCents)}`,
+        `------------------------------------`,
+        ...items.map(i => `${i.count}x ${i.label} (${i.type}) = ${formatBRL(i.subtotalCents)}`)
+      ];
+      lastReportText = lines.join('\n');
+      copyReportBtn.disabled = false;
+    }
 
-                <div class="results-toolbar">
-                    <h2>Composição Otimizada</h2>
-                    <button type="button" class="btn-icon" onclick="copiarRelatorio()">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                        </svg>
-                        <span id="copyLabel">Copiar Relatório</span>
-                    </button>
-                </div>
+    function resetAll() {
+      clearRenderTimers();
+      changeDisplay.value = '';
+      syncDisplayState();
+      totalAmountText.textContent = 'R$ 0,00';
+      totalPiecesText.textContent = '0 unidades';
+      writtenAmountText.textContent = 'Zero reais.';
+      roundingNotice.classList.add('hidden');
+      copyReportBtn.disabled = true;
+      lastReportText = '';
+      breakdownContainer.innerHTML = `
+        <div class="p-6 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700 text-center text-sm text-slate-400 dark:text-slate-500">
+          Digite o valor do troco no visor acima e clique em <strong>Calcular Troco</strong> para visualizar as cédulas e moedas.
+        </div>
+      `;
+    }
 
-                <div class="denominations-list" id="denominationsList"></div>
-            </div>
+    calculateBtn.addEventListener('click', runCalculation);
+    clearBtn.addEventListener('click', resetAll);
+    inlineClearBtn.addEventListener('click', resetAll);
 
-            <footer class="history-footer" id="historySection">
-                <div class="history-header">
-                    <span class="bar-title">Histórico da sessão</span>
-                    <button type="button" class="btn-text-danger" onclick="limparHistorico()">Limpar histórico</button>
-                </div>
-                <div class="history-chips" id="historyList"></div>
-            </footer>
-        </section>
-    </main>
+    copyReportBtn.addEventListener('click', async () => {
+      if (!lastReportText) return;
+      try {
+        await navigator.clipboard.writeText(lastReportText);
+        copyBtnLabel.textContent = 'Copiado!';
+        setTimeout(() => {
+          copyBtnLabel.textContent = 'Copiar Relatório';
+        }, 2000);
+      } catch {
+        const tempArea = document.createElement('textarea');
+        tempArea.value = lastReportText;
+        document.body.appendChild(tempArea);
+        tempArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempArea);
+        copyBtnLabel.textContent = 'Copiado!';
+        setTimeout(() => {
+          copyBtnLabel.textContent = 'Copiar Relatório';
+        }, 2000);
+      }
+    });
 
-    <script>
-        const PECAS_OFICIAIS = [20000, 10000, 5000, 2000, 1000, 500, 200, 100, 50, 25, 10, 5, 1];
-        const ESTILOS_PECAS = {
-            20000: { tipo: 'Cédula', curto: '200', bg: '#64748b', corTexto: '#ffffff' },
-            10000: { tipo: 'Cédula', curto: '100', bg: '#0284c7', corTexto: '#ffffff' },
-            5000:  { tipo: 'Cédula', curto: '50',  bg: '#d97706', corTexto: '#ffffff' },
-            2000:  { tipo: 'Cédula', curto: '20',  bg: '#ca8a04', corTexto: '#ffffff' },
-            1000:  { tipo: 'Cédula', curto: '10',  bg: '#dc2626', corTexto: '#ffffff' },
-            500:   { tipo: 'Cédula', curto: '5',   bg: '#9333ea', corTexto: '#ffffff' },
-            200:   { tipo: 'Cédula', curto: '2',   bg: '#2563eb', corTexto: '#ffffff' },
-            100:   { tipo: 'Moeda',  curto: '1R$', bg: '#eab308', corTexto: '#1e293b' },
-            50:    { tipo: 'Moeda',  curto: '50c', bg: '#94a3b8', corTexto: '#0f172a' },
-            25:    { tipo: 'Moeda',  curto: '25c', bg: '#b45309', corTexto: '#ffffff' },
-            10:    { tipo: 'Moeda',  curto: '10c', bg: '#d97706', corTexto: '#ffffff' },
-            5:     { tipo: 'Moeda',  curto: '5c',  bg: '#9a3412', corTexto: '#ffffff' },
-            1:     { tipo: 'Moeda',  curto: '1c',  bg: '#78716c', corTexto: '#ffffff' }
-        };
-
-        let ultimoRelatorioTexto = '';
-        let historicoSessao = [];
-
-        function lerStorage(chave, padrao) {
-            try {
-                const val = localStorage.getItem(chave);
-                return val !== null ? val : padrao;
-            } catch (e) {
-                return padrao;
-            }
-        }
-
-        function salvarStorage(chave, valor) {
-            try {
-                localStorage.setItem(chave, valor);
-            } catch (e) {}
-        }
-
-        function aplicarTema(tema) {
-            document.documentElement.setAttribute('data-theme', tema);
-            salvarStorage('pdv_theme', tema);
-            const iconSun = document.getElementById('iconSun');
-            const iconMoon = document.getElementById('iconMoon');
-            const themeLabel = document.getElementById('themeLabel');
-
-            if (tema === 'light') {
-                iconSun.style.display = 'none';
-                iconMoon.style.display = 'block';
-                themeLabel.textContent = 'Modo Escuro';
-            } else {
-                iconSun.style.display = 'block';
-                iconMoon.style.display = 'none';
-                themeLabel.textContent = 'Modo Claro';
-            }
-        }
-
-        function alternarTema() {
-            const atual = document.documentElement.getAttribute('data-theme') || 'dark';
-            aplicarTema(atual === 'dark' ? 'light' : 'dark');
-        }
-
-        function formatarMoeda(centavos) {
-            return (centavos / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-        }
-
-        function animarNumero(elemento, valorFinal, formatador, duracao = 380) {
-            const inicio = performance.now();
-            function atualizar(agora) {
-                const progresso = Math.min((agora - inicio) / duracao, 1);
-                const easeOut = 1 - Math.pow(1 - progresso, 3);
-                const valorAtual = Math.round(valorFinal * easeOut);
-                elemento.textContent = formatador(valorAtual);
-                if (progresso < 1) {
-                    requestAnimationFrame(atualizar);
-                } else {
-                    elemento.textContent = formatador(valorFinal);
-                }
-            }
-            requestAnimationFrame(atualizar);
-        }
-
-        function numeroPorExtenso(centavosTotais) {
-            if (centavosTotais === 0) return 'Zero reais';
-            const unidades = ['', 'um', 'dois', 'três', 'quatro', 'cinco', 'seis', 'sete', 'oito', 'nove'];
-            const dezADezenove = ['dez', 'onze', 'doze', 'treze', 'quatorze', 'quinze', 'dezesseis', 'dezessete', 'dezoito', 'dezenove'];
-            const dezenas = ['', '', 'vinte', 'trinta', 'quarenta', 'cinquenta', 'sessenta', 'setenta', 'oitenta', 'noventa'];
-            const centenas = ['', 'cento', 'duzentos', 'trezentos', 'quatrocentos', 'quinhentos', 'seiscentos', 'setecentos', 'oitocentos', 'novecentos'];
-
-            function converterGrupo(n) {
-                if (n === 0) return '';
-                if (n === 100) return 'cem';
-                let partes = [];
-                const c = Math.floor(n / 100);
-                const resto = n % 100;
-                if (c > 0) partes.push(centenas[c]);
-                if (resto >= 10 && resto <= 19) {
-                    partes.push(dezADezenove[resto - 10]);
-                } else {
-                    const d = Math.floor(resto / 10);
-                    const u = resto % 10;
-                    if (d > 0) partes.push(dezenas[d]);
-                    if (u > 0) partes.push(unidades[u]);
-                }
-                return partes.join(' e ');
-            }
-
-            const reais = Math.floor(centavosTotais / 100);
-            const cents = centavosTotais % 100;
-            let resultado = [];
-
-            if (reais > 0) {
-                if (reais >= 1000) {
-                    const milhares = Math.floor(reais / 1000);
-                    const restoReais = reais % 1000;
-                    resultado.push((milhares === 1 ? 'mil' : converterGrupo(milhares) + ' mil') + (restoReais > 0 ? ' e ' + converterGrupo(restoReais) : ''));
-                } else {
-                    resultado.push(converterGrupo(reais));
-                }
-                resultado[resultado.length - 1] += reais === 1 ? ' real' : ' reais';
-            }
-
-            if (cents > 0) {
-                resultado.push(converterGrupo(cents) + (cents === 1 ? ' centavo' : ' centavos'));
-            }
-
-            const frase = resultado.join(' e ');
-            return frase.charAt(0).toUpperCase() + frase.slice(1);
-        }
-
-        function calcularLocalmente(valorTexto) {
-            const limpo = valorTexto.trim().replace(',', '.');
-            if (!limpo) throw new Error('Informe um valor para calcular o troco.');
-            if (!/^-?\d+(\.\d+)?$/.test(limpo)) throw new Error('Valor inválido. Utilize apenas números e vírgula ou ponto.');
-            if (limpo.startsWith('-')) throw new Error('O valor não pode ser negativo.');
-
-            const partes = limpo.split('.');
-            const reais = parseInt(partes[0], 10);
-            let centavosStr = partes[1] || '00';
-            if (centavosStr.length > 2) throw new Error('O valor deve conter no máximo duas casas decimais.');
-
-            centavosStr = centavosStr.padEnd(2, '0');
-            const centavosTotais = (reais * 100) + parseInt(centavosStr, 10);
-
-            let restante = centavosTotais;
-            const pecas = [];
-            for (const peca of PECAS_OFICIAIS) {
-                const qtd = Math.floor(restante / peca);
-                if (qtd > 0) {
-                    pecas.push({ valor: peca, qtd: qtd });
-                    restante = restante % peca;
-                }
-            }
-            return { centavos_totais: centavosTotais, pecas: pecas };
-        }
-
-        async function iniciarCalculo() {
-            const valorTexto = document.getElementById('valorInput').value;
-            const errorBox = document.getElementById('errorBox');
-            const errorText = document.getElementById('errorText');
-            const resultsPanel = document.getElementById('resultsPanel');
-            const btnCalcular = document.getElementById('btnCalcular');
-
-            errorBox.style.display = 'none';
-            btnCalcular.disabled = true;
-            btnCalcular.textContent = 'Processando...';
-
-            try {
-                let dados;
-                try {
-                    const resposta = await fetch('/calcular', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ valor: valorTexto })
-                    });
-                    const contentType = resposta.headers.get('content-type') || '';
-                    if (contentType.includes('application/json')) {
-                        const json = await resposta.json();
-                        if (!resposta.ok || !json.sucesso) {
-                            throw new Error(json.erro || 'Erro ao processar o valor.');
-                        }
-                        dados = json;
-                    } else {
-                        dados = calcularLocalmente(valorTexto);
-                    }
-                } catch (erroRede) {
-                    if (erroRede.message && !erroRede.message.includes('Failed to fetch') && !erroRede.message.includes('NetworkError') && !erroRede.message.includes('JSON')) {
-                        throw erroRede;
-                    }
-                    dados = calcularLocalmente(valorTexto);
-                }
-
-                renderizarResultados(dados.centavos_totais, dados.pecas);
-                salvarHistorico(valorTexto.trim());
-            } catch (err) {
-                resultsPanel.style.display = 'none';
-                errorText.textContent = err.message;
-                errorBox.style.animation = 'none';
-                errorBox.offsetHeight;
-                errorBox.style.animation = null;
-                errorBox.style.display = 'flex';
-            } finally {
-                btnCalcular.disabled = false;
-                btnCalcular.textContent = 'Calcular Troco';
-            }
-        }
-
-        function renderizarResultados(centavosTotais, pecas) {
-            const resultsPanel = document.getElementById('resultsPanel');
-            const listEl = document.getElementById('denominationsList');
-            const metricTotal = document.getElementById('metricTotal');
-            const metricPecas = document.getElementById('metricPecas');
-            const extensoText = document.getElementById('extensoText');
-
-            resultsPanel.style.display = 'none';
-            resultsPanel.offsetHeight;
-            resultsPanel.style.display = 'flex';
-
-            listEl.innerHTML = '';
-            let totalUnidades = 0;
-            let linhasRelatorio = [`Relatório de Troco - Total: ${formatarMoeda(centavosTotais)}`, '----------------------------------------'];
-
-            if (pecas.length === 0) {
-                listEl.innerHTML = '<div class="denom-row" style="opacity: 1;"><span class="denom-title">Nenhuma peça necessária (valor zerado).</span></div>';
-                linhasRelatorio.push('Nenhuma peça necessária.');
-            } else {
-                pecas.forEach((item, index) => {
-                    totalUnidades += item.qtd;
-                    const estilo = ESTILOS_PECAS[item.valor] || { tipo: 'Unidade', curto: '', bg: '#3b82f6', corTexto: '#fff' };
-                    const subtotal = item.valor * item.qtd;
-                    const isCedula = item.valor >= 200;
-
-                    linhasRelatorio.push(`${item.qtd}x ${estilo.tipo} de ${formatarMoeda(item.valor)} (Subtotal: ${formatarMoeda(subtotal)})`);
-
-                    const row = document.createElement('div');
-                    row.className = 'denom-row';
-                    row.style.animationDelay = `${index * 0.06}s`;
-                    row.innerHTML = `
-                        <div class="denom-left">
-                            <div class="${isCedula ? 'visual-note' : 'visual-coin'}" style="background-color: ${estilo.bg}; color: ${estilo.corTexto};">
-                                ${estilo.curto}
-                            </div>
-                            <div class="denom-details">
-                                <span class="denom-title">${formatarMoeda(item.valor)}</span>
-                                <span class="denom-sub">${estilo.tipo} oficial</span>
-                            </div>
-                        </div>
-                        <div class="denom-right">
-                            <span class="denom-subtotal">${formatarMoeda(subtotal)}</span>
-                            <span class="qty-pill">${item.qtd}x</span>
-                        </div>
-                    `;
-                    listEl.appendChild(row);
-                });
-            }
-
-            animarNumero(metricTotal, centavosTotais, formatarMoeda);
-            animarNumero(metricPecas, totalUnidades, (n) => `${n} ${n === 1 ? 'unidade' : 'unidades'}`);
-            extensoText.textContent = `Valor por extenso: ${numeroPorExtenso(centavosTotais)}.`;
-            ultimoRelatorioTexto = linhasRelatorio.join('\n');
-        }
-
-        function executarSimulacao(valor) {
-            document.getElementById('valorInput').value = valor;
-            iniciarCalculo();
-        }
-
-        function limparTela() {
-            const input = document.getElementById('valorInput');
-            input.value = '';
-            document.getElementById('errorBox').style.display = 'none';
-            document.getElementById('resultsPanel').style.display = 'none';
-            input.focus();
-        }
-
-        function salvarHistorico(valor) {
-            if (!valor) return;
-            historicoSessao = historicoSessao.filter(item => item !== valor);
-            historicoSessao.unshift(valor);
-            if (historicoSessao.length > 6) historicoSessao.pop();
-            salvarStorage('pdv_history', JSON.stringify(historicoSessao));
-            renderizarHistorico();
-        }
-
-        function limparHistorico() {
-            historicoSessao = [];
-            salvarStorage('pdv_history', '[]');
-            renderizarHistorico();
-        }
-
-        function renderizarHistorico() {
-            const section = document.getElementById('historySection');
-            const listEl = document.getElementById('historyList');
-
-            if (historicoSessao.length === 0) {
-                section.style.display = 'none';
-                return;
-            }
-
-            section.style.display = 'block';
-            listEl.innerHTML = '';
-            historicoSessao.forEach(val => {
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                btn.className = 'preset-pill';
-                btn.textContent = `R$ ${val}`;
-                btn.onclick = () => executarSimulacao(val);
-                listEl.appendChild(btn);
-            });
-        }
-
-        function copiarRelatorio() {
-            if (!ultimoRelatorioTexto) return;
-            const copyLabel = document.getElementById('copyLabel');
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(ultimoRelatorioTexto).then(() => {
-                    copyLabel.textContent = 'Copiado';
-                    setTimeout(() => { copyLabel.textContent = 'Copiar Relatório'; }, 2000);
-                });
-            }
-        }
-
-        function verificarTeclaInput(event) {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                iniciarCalculo();
-            } else if (event.key === 'Escape') {
-                limparTela();
-            }
-        }
-
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') limparTela();
-        });
-
-        (function init() {
-            const temaSalvo = lerStorage('pdv_theme', 'dark');
-            aplicarTema(temaSalvo);
-            try {
-                historicoSessao = JSON.parse(lerStorage('pdv_history', '[]'));
-            } catch (e) {
-                historicoSessao = [];
-            }
-            renderizarHistorico();
-        })();
-    </script>
+    // Inicializa estado de rolagem no carregamento
+    updateAssemblyOnScroll();
+  </script>
 </body>
 </html>
